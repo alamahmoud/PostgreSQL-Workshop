@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.sql text eol=lf
+
+*.docx binary
+*.zip binary

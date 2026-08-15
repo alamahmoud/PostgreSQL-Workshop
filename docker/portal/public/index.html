@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CarvedRock PostgreSQL Workshop</title>
+<link rel="stylesheet" href="/vendor/xterm/css/xterm.css">
+<style>
+  :root{
+    --bg:#0e141b; --panel:#151d26; --panel-2:#1a2430; --line:#26333f;
+    --text:#d8dfe8; --dim:#8496a9; --faint:#5c6b7d;
+    --blue:#5b9dd9; --blue-deep:#336791;
+    --ok:#4cc38a; --busy:#e5b454; --down:#e5646e;
+    --mono:ui-monospace,'Cascadia Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);display:flex;flex-direction:column;overflow:hidden}
+
+  /* ---------- top bar ---------- */
+  header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .mark{font-family:var(--mono);font-size:13px;letter-spacing:.18em;color:var(--blue);white-space:nowrap}
+  .mark b{color:var(--text);font-weight:600}
+  .conninfo{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:auto;white-space:nowrap}
+  #imgbanner{display:none;font-family:var(--mono);font-size:12px;padding:6px 18px;border-bottom:1px solid var(--line);background:#2a2416;color:var(--busy)}
+  #imgbanner.error{background:#2a1618;color:var(--down)}
+
+  /* ---------- layout ---------- */
+  main{flex:1;display:flex;min-height:0}
+  #rail{width:300px;min-width:300px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px}
+  #stage{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+
+  .labgroup{margin-bottom:18px}
+  .labgroup h2{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 8px 2px}
+
+  .server{border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:10px 12px;margin-bottom:8px}
+  .server .row1{display:flex;align-items:center;gap:8px}
+  .led{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+  .led.ready{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+  .led.provisioning{background:var(--busy);box-shadow:0 0 6px var(--busy);animation:pulse 1.2s infinite}
+  .led.stopped{background:var(--down)}
+  @keyframes pulse{50%{opacity:.35}}
+  .server .name{font-family:var(--mono);font-size:14px;font-weight:600}
+  .server .st{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+  .server .prompt{font-family:var(--mono);font-size:11px;color:var(--faint);margin:6px 0 2px}
+  .server .desc{font-size:11.5px;color:var(--dim);line-height:1.45;margin-bottom:9px}
+  .server .acts{display:flex;gap:6px}
+  button{font-family:var(--sans);font-size:12px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--dim);padding:5px 10px;cursor:pointer}
+  button:hover{color:var(--text);border-color:var(--blue-deep)}
+  button.primary{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff;font-weight:600}
+  button.primary:hover{background:#3e7aab}
+  button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+  button:disabled{opacity:.45;cursor:default}
+
+  /* ---------- terminal stage ---------- */
+  #tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);background:var(--panel);padding:6px 8px 0}
+  .tab{font-family:var(--mono);font-size:12px;color:var(--dim);border:1px solid var(--line);border-bottom:none;border-radius:6px 6px 0 0;padding:6px 10px;cursor:pointer;display:flex;gap:8px;align-items:center;background:var(--panel-2)}
+  .tab.active{color:var(--text);background:var(--bg);border-color:var(--blue-deep)}
+  .tab .x{color:var(--faint);cursor:pointer}
+  .tab .x:hover{color:var(--down)}
+  #panes{flex:1;position:relative;min-height:0}
+  .pane{position:absolute;inset:0;display:none;padding:8px}
+  .pane.active{display:block}
+  .pane .term{width:100%;height:100%}
+  #empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--faint)}
+  #empty .big{font-family:var(--mono);font-size:15px;color:var(--dim)}
+  #empty code{font-family:var(--mono);color:var(--blue)}
+  @media (max-width:760px){#rail{width:230px;min-width:230px}}
+</style>
+</head>
+<body>
+<header>
+  <span class="mark">CARVEDROCK <b>·</b> POSTGRESQL WORKSHOP</span>
+  <span class="conninfo" id="conninfo">portal :8080 · network 172.28.5.0/24</span>
+</header>
+<div id="imgbanner"></div>
+<main>
+  <nav id="rail" aria-label="Lab servers"></nav>
+  <section id="stage">
+    <div id="tabs"></div>
+    <div id="panes">
+      <div id="empty">
+        <div class="big">No terminal open</div>
+        <div>Pick a server on the left and click <code>Open terminal</code>.</div>
+        <div>Provisioning runs on first start — inside, run <code>ls</code> until <code>SYSTEM_COMPLETE</code> appears, then follow your Lab Guide.</div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="/vendor/xterm/lib/xterm.js"></script>
+<script src="/vendor/addon-fit/lib/addon-fit.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
