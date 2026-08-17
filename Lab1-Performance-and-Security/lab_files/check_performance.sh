@@ -1,12 +1,12 @@
 #!/bin/bash
 # ============================================================================
 # check_performance.sh — snapshot of current database performance metrics
-# Usage: ./check_performance.sh [database_name]   (default: carvedrock)
+# Usage: ./check_performance.sh [database_name]   (default: studentsmis)
 # Tested on: PostgreSQL 15 and 16
 # ============================================================================
 set -u
 
-DB="${1:-carvedrock}"
+DB="${1:-studentsmis}"
 PSQL="sudo -u postgres psql -d ${DB} -v ON_ERROR_STOP=0"
 
 echo "==================================="

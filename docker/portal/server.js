@@ -1,4 +1,4 @@
-// CarvedRock PostgreSQL Workshop — browser lab portal
+// Students MIS PostgreSQL Workshop — browser lab portal
 //
 // One small server, three jobs:
 //   1. serve the single-page UI (public/)
@@ -18,8 +18,8 @@ const Docker = require('dockerode');
 const tar = require('tar-fs');
 
 const PORT = process.env.PORT || 8080;
-const LAB_IMAGE = process.env.LAB_IMAGE || 'carvedrock/pg-lab:1.0';
-const LAB_NETWORK = process.env.LAB_NETWORK || 'carvedrock-labnet';
+const LAB_IMAGE = process.env.LAB_IMAGE || 'studentsmis/pg-lab:1.0';
+const LAB_NETWORK = process.env.LAB_NETWORK || 'studentsmis-labnet';
 const WORKSHOP_DIR = process.env.WORKSHOP_DIR || '/workshop';
 
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
@@ -28,19 +28,19 @@ const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 // has students put into pg_hba.conf (172.28.5.0/24).
 const SERVERS = {
   'lab1': {
-    label: 'lab1', container: 'cr-lab1', role: 'lab1',
+    label: 'lab1', container: 'sm-lab1', role: 'lab1',
     lab: 'Lab 1 — Performance & Security',
-    desc: 'Single server · carvedrock DB · sabotage pre-applied',
+    desc: 'Single server · studentsmis DB · sabotage pre-applied',
     ip: '172.28.5.20',
   },
   'pg-primary': {
-    label: 'pg-primary', container: 'cr-pg-primary', role: 'lab2-primary',
+    label: 'pg-primary', container: 'sm-pg-primary', role: 'lab2-primary',
     lab: 'Lab 2 — Disaster Recovery & Failover',
-    desc: 'Primary · carvedrock_prod · the “Ubuntu Desktop” of the guide',
+    desc: 'Primary · studentsmis_prod · the “Ubuntu Desktop” of the guide',
     ip: '172.28.5.10',
   },
   'pg-standby': {
-    label: 'pg-standby', container: 'cr-pg-standby', role: 'lab2-standby',
+    label: 'pg-standby', container: 'sm-pg-standby', role: 'lab2-standby',
     lab: 'Lab 2 — Disaster Recovery & Failover',
     desc: 'Standby · bare PostgreSQL · the “Ubuntu Console” of the guide',
     ip: '172.28.5.11',

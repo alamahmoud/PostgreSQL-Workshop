@@ -2,11 +2,11 @@
 # ============================================================================
 # verify_environment.sh — pre-flight check for the Performance & Security lab
 # Run before the session to confirm the environment is built correctly.
-# Usage: ./verify_environment.sh [database_name]   (default: carvedrock)
+# Usage: ./verify_environment.sh [database_name]   (default: studentsmis)
 # ============================================================================
 set -u
 
-DB="${1:-carvedrock}"
+DB="${1:-studentsmis}"
 PASS=0
 FAIL=0
 
@@ -42,7 +42,7 @@ else
 fi
 
 # 4. Expected tables and row counts
-for spec in "customers:4500" "orders:19000" "order_items:45000" "products:90"; do
+for spec in "students:4500" "enrollments:19000" "grades:45000" "courses:90"; do
     T="${spec%%:*}"; MIN="${spec##*:}"
     CNT=$(sudo -u postgres psql -d "${DB}" -t -A -c \
           "SELECT COUNT(*) FROM ${T};" 2>/dev/null)

@@ -77,16 +77,16 @@ docker compose exec -u ubuntu pg-primary bash   # terminal 1
 docker compose exec -u ubuntu pg-standby bash   # terminal 2
 ```
 
-Portal and CLI manage the same containers (`cr-lab1`, `cr-pg-primary`,
-`cr-pg-standby`), so they can be mixed freely.
+Portal and CLI manage the same containers (`sm-lab1`, `sm-pg-primary`,
+`sm-pg-standby`), so they can be mixed freely.
 
 ## Reset
 
 | Goal | How |
 |---|---|
-| Reset one server to pristine | **Reset** button on its card (or `docker rm -f cr-<name>`) |
-| Restart a server, state kept | **Stop** then **Start** (or `docker restart cr-<name>`) |
-| Tear down everything | `docker compose down` then `docker rm -f cr-lab1 cr-pg-primary cr-pg-standby` |
+| Reset one server to pristine | **Reset** button on its card (or `docker rm -f sm-<name>`) |
+| Restart a server, state kept | **Stop** then **Start** (or `docker restart sm-<name>`) |
+| Tear down everything | `docker compose down` then `docker rm -f sm-lab1 sm-pg-primary sm-pg-standby` |
 | Remove images too | add `--rmi all` to the compose down |
 
 State intentionally lives in the containers, not volumes: a reset is one
@@ -98,7 +98,7 @@ next attempt.
 * **A ready LED means a verified environment.** Provisioning ends by running
   the lab's `verify_environment.sh` (13 checks for Lab 1, 9 for Lab 2); a
   container only drops `SYSTEM_COMPLETE` after all checks pass. If
-  provisioning fails, the container exits and `docker logs cr-<name>` names
+  provisioning fails, the container exits and `docker logs sm-<name>` names
   the failing check.
 * **Security scope:** the portal mounts the Docker socket (that is how it
   creates containers) and has no authentication. It is designed for one

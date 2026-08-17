@@ -1,4 +1,4 @@
-# CarvedRock PostgreSQL Workshop
+# Students MIS PostgreSQL Workshop
 
 Two hands-on labs for delivering a complete PostgreSQL administration workshop.
 Every command, script, and expected output in this package was **executed and
@@ -22,7 +22,7 @@ PostgreSQL-Workshop/
 ├── Lab1-Performance-and-Security/
 │   ├── Lab-Guide.docx            ← student guide (2 objectives, 7 tasks)
 │   └── lab_files/
-│       ├── init_database.sql             (idempotent schema + 20k orders / 50k items + bloat)
+│       ├── init_database.sql             (idempotent schema + 20k enrollments / 50k grades + bloat)
 │       ├── create_performance_issues.sql (drops indexes, mis-tunes server, disables autovacuum)
 │       ├── check_performance.sh          (one-shot health snapshot; auto-detects pg_stat_statements)
 │       ├── generate_test_queries.sh      (representative workload generator)
@@ -30,7 +30,7 @@ PostgreSQL-Workshop/
 └── Lab2-Disaster-Recovery-and-Failover/
     ├── Lab-Guide.docx            ← student guide (backups, PITR, replication, failover)
     └── lab_files/
-        ├── init_database.sql             (idempotent, deterministic: 10/15/15/21/15 rows)
+        ├── init_database.sql             (idempotent, deterministic: 10/8/15/15/21 rows)
         └── verify_environment.sh         (9-point pre-flight check)
 ```
 
@@ -77,10 +77,10 @@ docker compose exec -u ubuntu pg-primary bash   # terminal 1
 docker compose exec -u ubuntu pg-standby bash   # terminal 2
 ```
 
-Portal and CLI manage the same containers (`cr-lab1`, `cr-pg-primary`,
-`cr-pg-standby`), so they can be mixed freely. Tear down with
+Portal and CLI manage the same containers (`sm-lab1`, `sm-pg-primary`,
+`sm-pg-standby`), so they can be mixed freely. Tear down with
 `docker compose down` and remove any leftover containers with
-`docker rm -f cr-lab1 cr-pg-primary cr-pg-standby`.
+`docker rm -f sm-lab1 sm-pg-primary sm-pg-standby`.
 
 Full details, requirements, and the guide-to-Docker translation table:
 `docker/README.md`.

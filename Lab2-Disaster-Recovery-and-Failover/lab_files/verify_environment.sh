@@ -2,11 +2,11 @@
 # ============================================================================
 # verify_environment.sh — pre-flight check for the Disaster Recovery lab
 # Run on the PRIMARY server before the session.
-# Usage: ./verify_environment.sh [database_name]   (default: carvedrock_prod)
+# Usage: ./verify_environment.sh [database_name]   (default: studentsmis_prod)
 # ============================================================================
 set -u
 
-DB="${1:-carvedrock_prod}"
+DB="${1:-studentsmis_prod}"
 PASS=0
 FAIL=0
 
@@ -42,7 +42,7 @@ else
 fi
 
 # 4. Expected exact row counts (init script is idempotent/deterministic)
-for spec in "customers:10" "products:15" "orders:15" "order_items:21" "inventory:15"; do
+for spec in "students:10" "departments:8" "courses:15" "enrollments:15" "grades:21"; do
     T="${spec%%:*}"; WANT="${spec##*:}"
     CNT=$(sudo -u postgres psql -d "${DB}" -t -A -c \
           "SELECT COUNT(*) FROM ${T};" 2>/dev/null)

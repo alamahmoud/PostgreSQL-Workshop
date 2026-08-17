@@ -1,4 +1,4 @@
-# CarvedRock PostgreSQL Workshop — shared lab image
+# Students MIS PostgreSQL Workshop — shared lab image
 #
 # Deliberately built on Ubuntu + apt PostgreSQL (not the official postgres
 # image) so the container matches the lab guides byte for byte:

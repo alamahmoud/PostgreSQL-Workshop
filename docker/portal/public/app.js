@@ -1,4 +1,4 @@
-/* CarvedRock lab portal — frontend */
+/* Students MIS lab portal — frontend */
 'use strict';
 
 const rail = document.getElementById('rail');

@@ -1,4 +1,4 @@
-# CarvedRock PostgreSQL Workshop — student environment
+# Students MIS PostgreSQL Workshop — student environment
 #
 # BROWSER DELIVERY (recommended):
 #     docker compose up -d --build
@@ -12,20 +12,20 @@
 #     docker compose exec -u ubuntu <service> bash
 #
 # Reset a lab from the portal (Reset button) or:
-#     docker compose --profile lab1 down   (or remove cr-* containers)
+#     docker compose --profile lab1 down   (or remove sm-* containers)
 # State lives in the containers, not volumes — reset is always one step.
 
 services:
 
   portal:
     build: ./portal
-    image: carvedrock/pg-lab-portal:1.0
-    container_name: cr-portal
+    image: studentsmis/pg-lab-portal:1.0
+    container_name: sm-portal
     ports:
       - "8080:8080"
     environment:
-      LAB_IMAGE: carvedrock/pg-lab:1.0
-      LAB_NETWORK: carvedrock-labnet
+      LAB_IMAGE: studentsmis/pg-lab:1.0
+      LAB_NETWORK: studentsmis-labnet
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # package root, read-only: the portal builds the lab image from it
@@ -39,8 +39,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: carvedrock/pg-lab:1.0
-    container_name: cr-lab1
+    image: studentsmis/pg-lab:1.0
+    container_name: sm-lab1
     hostname: lab1
     environment:
       LAB_ROLE: lab1
@@ -55,8 +55,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: carvedrock/pg-lab:1.0
-    container_name: cr-pg-primary
+    image: studentsmis/pg-lab:1.0
+    container_name: sm-pg-primary
     hostname: pg-primary
     environment:
       LAB_ROLE: lab2-primary
@@ -73,8 +73,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: carvedrock/pg-lab:1.0
-    container_name: cr-pg-standby
+    image: studentsmis/pg-lab:1.0
+    container_name: sm-pg-standby
     hostname: pg-standby
     environment:
       LAB_ROLE: lab2-standby
@@ -89,7 +89,7 @@ services:
 
 networks:
   labnet:
-    name: carvedrock-labnet
+    name: studentsmis-labnet
     ipam:
       config:
         - subnet: 172.28.5.0/24

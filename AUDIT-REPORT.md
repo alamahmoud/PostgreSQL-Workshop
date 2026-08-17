@@ -1,5 +1,13 @@
 # Audit Report — Original Lab Material
 
+> **Note (2026-08-17):** the workshop's schema and branding were rebranded from
+> the original fictional retailer "CarvedRock" (customers/products/orders/
+> order_items/inventory) to a "Students MIS" academic schema (students/
+> departments/courses/enrollments/grades) after this audit was written. Every
+> finding below refers to the pre-rebrand retail schema exactly as originally
+> written and audited — it is a historical record, not current documentation.
+> See CLAUDE.md and README.md for the current schema and naming.
+
 Review performed from the perspective of a senior PostgreSQL DBA and technical
 trainer. Every defect below was **reproduced against a live PostgreSQL 16
 instance**, and every fix in this package was **executed and verified** on the

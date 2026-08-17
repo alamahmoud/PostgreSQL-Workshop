@@ -1,8 +1,8 @@
 #!/bin/bash
-# CarvedRock lab container entrypoint.
+# Students MIS lab container entrypoint.
 # LAB_ROLE selects what gets provisioned on first start:
-#   lab1          -> carvedrock DB + roles + pg_stat_statements + sabotage applied
-#   lab2-primary  -> carvedrock_prod DB, clean (students configure archiving etc.)
+#   lab1          -> studentsmis DB + roles + pg_stat_statements + sabotage applied
+#   lab2-primary  -> studentsmis_prod DB, clean (students configure archiving etc.)
 #   lab2-standby  -> bare PostgreSQL only (students wipe & clone it)
 set -e
 
@@ -46,23 +46,23 @@ if [ ! -f "$MARKER" ]; then
         lab1)
             as_pg "psql -qc \"ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';\""
             pg_ctlcluster "$PG_VER" main restart
-            as_pg "createdb carvedrock"
+            as_pg "createdb studentsmis"
             as_pg "psql -qc \"CREATE USER app_user PASSWORD 'insecure123';\""
             as_pg "psql -qc \"CREATE USER readonly_user PASSWORD 'readonly123';\""
-            as_pg "psql -qc \"GRANT CONNECT ON DATABASE carvedrock TO app_user, readonly_user;\""
-            as_pg "psql -d carvedrock -qc 'CREATE EXTENSION pg_stat_statements;'"
+            as_pg "psql -qc \"GRANT CONNECT ON DATABASE studentsmis TO app_user, readonly_user;\""
+            as_pg "psql -d studentsmis -qc 'CREATE EXTENSION pg_stat_statements;'"
             say "Loading schema and data (this is the slow part, ~30-60s) ..."
-            as_pg "psql -d carvedrock -q -v ON_ERROR_STOP=1 -f /tmp/init_database.sql"
+            as_pg "psql -d studentsmis -q -v ON_ERROR_STOP=1 -f /tmp/init_database.sql"
             say "Applying the deliberate misconfiguration ..."
-            as_pg "psql -d carvedrock -q -v ON_ERROR_STOP=1 -f /tmp/create_performance_issues.sql"
+            as_pg "psql -d studentsmis -q -v ON_ERROR_STOP=1 -f /tmp/create_performance_issues.sql"
             pg_ctlcluster "$PG_VER" main restart   # shared_buffers sabotage needs it
             say "Running environment verification ..."
             bash /home/ubuntu/lab_files/verify_environment.sh || {
                 say "VERIFICATION FAILED — see output above"; exit 1; }
             ;;
         lab2-primary)
-            as_pg "createdb carvedrock_prod"
-            as_pg "psql -d carvedrock_prod -q -v ON_ERROR_STOP=1 -f /tmp/init_database.sql"
+            as_pg "createdb studentsmis_prod"
+            as_pg "psql -d studentsmis_prod -q -v ON_ERROR_STOP=1 -f /tmp/init_database.sql"
             say "Running environment verification ..."
             bash /home/ubuntu/lab_files/verify_environment.sh || {
                 say "VERIFICATION FAILED — see output above"; exit 1; }

@@ -13,7 +13,7 @@
 --
 -- Idempotent: safe to re-run.
 -- Tested on: PostgreSQL 15 and 16
--- Run as:    sudo -u postgres psql -d carvedrock -f create_performance_issues.sql
+-- Run as:    sudo -u postgres psql -d studentsmis -f create_performance_issues.sql
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -46,58 +46,58 @@ END $$;
 -- ----------------------------------------------------------------------------
 -- Deliberately slow function: correlated EXISTS subqueries with no indexes
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION find_customers_with_multiple_recent_orders()
-RETURNS TABLE(customer_name VARCHAR, order_count BIGINT, total_spent NUMERIC)
+CREATE OR REPLACE FUNCTION find_students_with_multiple_recent_enrollments()
+RETURNS TABLE(student_name VARCHAR, enrollment_count BIGINT, total_tuition NUMERIC)
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        c.customer_name,
-        COUNT(*) AS order_count,
-        SUM(o.total_amount) AS total_spent
-    FROM customers c
-    JOIN orders o ON c.customer_id = o.customer_id
+        s.student_name,
+        COUNT(*) AS enrollment_count,
+        SUM(e.tuition_amount) AS total_tuition
+    FROM students s
+    JOIN enrollments e ON s.student_id = e.student_id
     WHERE EXISTS (
-        SELECT 1 FROM orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.order_date > CURRENT_DATE - INTERVAL '30 days'
+        SELECT 1 FROM enrollments e2
+        WHERE e2.student_id = s.student_id
+          AND e2.enrollment_date > CURRENT_DATE - INTERVAL '30 days'
     )
     AND EXISTS (
-        SELECT 1 FROM orders o3
-        WHERE o3.customer_id = c.customer_id
-        GROUP BY o3.customer_id
+        SELECT 1 FROM enrollments e3
+        WHERE e3.student_id = s.student_id
+        GROUP BY e3.student_id
         HAVING COUNT(*) > 3
     )
-    GROUP BY c.customer_name;
+    GROUP BY s.student_name;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ----------------------------------------------------------------------------
 -- Views with inefficient correlated subqueries (N+1 pattern)
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE VIEW slow_order_analysis AS
+CREATE OR REPLACE VIEW slow_enrollment_analysis AS
 SELECT
-    o.order_id,
-    o.customer_id,
-    o.total_amount,
-    (SELECT COUNT(*)      FROM order_items WHERE order_id = o.order_id)        AS item_count,
-    (SELECT SUM(quantity) FROM order_items WHERE order_id = o.order_id)        AS total_items,
-    (SELECT customer_name FROM customers   WHERE customer_id = o.customer_id)  AS customer_name,
-    (SELECT COUNT(*)      FROM orders o2
-      WHERE o2.customer_id = o.customer_id
-        AND o2.order_date < o.order_date)                                      AS previous_orders
-FROM orders o
-WHERE o.status = 'completed';
+    e.enrollment_id,
+    e.student_id,
+    e.tuition_amount,
+    (SELECT COUNT(*)      FROM grades WHERE enrollment_id = e.enrollment_id)     AS grade_count,
+    (SELECT SUM(credits)  FROM grades WHERE enrollment_id = e.enrollment_id)     AS total_credits,
+    (SELECT student_name  FROM students WHERE student_id = e.student_id)        AS student_name,
+    (SELECT COUNT(*)      FROM enrollments e2
+      WHERE e2.student_id = e.student_id
+        AND e2.enrollment_date < e.enrollment_date)                             AS previous_enrollments
+FROM enrollments e
+WHERE e.status = 'completed';
 
-CREATE OR REPLACE VIEW slow_customer_summary AS
+CREATE OR REPLACE VIEW slow_student_summary AS
 SELECT
-    c.*,
-    (SELECT COUNT(*)          FROM orders o WHERE o.customer_id = c.customer_id) AS order_count,
-    (SELECT SUM(total_amount) FROM orders o WHERE o.customer_id = c.customer_id) AS total_spent,
-    (SELECT MAX(order_date)   FROM orders o WHERE o.customer_id = c.customer_id) AS last_order,
-    (SELECT MIN(order_date)   FROM orders o WHERE o.customer_id = c.customer_id) AS first_order,
-    (SELECT AVG(total_amount) FROM orders o WHERE o.customer_id = c.customer_id) AS avg_order_value
-FROM customers c;
+    s.*,
+    (SELECT COUNT(*)            FROM enrollments e WHERE e.student_id = s.student_id) AS enrollment_count,
+    (SELECT SUM(tuition_amount) FROM enrollments e WHERE e.student_id = s.student_id) AS total_tuition,
+    (SELECT MAX(enrollment_date) FROM enrollments e WHERE e.student_id = s.student_id) AS last_enrollment,
+    (SELECT MIN(enrollment_date) FROM enrollments e WHERE e.student_id = s.student_id) AS first_enrollment,
+    (SELECT AVG(tuition_amount) FROM enrollments e WHERE e.student_id = s.student_id) AS avg_tuition_amount
+FROM students s;
 
 -- ----------------------------------------------------------------------------
 -- Audit log table + 1,000 sample rows
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 
 INSERT INTO audit_log (table_name, operation, user_name, old_data, new_data)
 SELECT
-    CASE WHEN random() < 0.5 THEN 'orders' ELSE 'customers' END,
+    CASE WHEN random() < 0.5 THEN 'enrollments' ELSE 'students' END,
     CASE WHEN random() < 0.3 THEN 'INSERT'
          WHEN random() < 0.6 THEN 'UPDATE'
          WHEN random() < 0.9 THEN 'SELECT'
@@ -128,32 +128,32 @@ FROM generate_series(1, 1000) AS gs;
 -- ----------------------------------------------------------------------------
 -- Disable autovacuum on the busy tables so bloat persists for the exercise
 -- ----------------------------------------------------------------------------
-ALTER TABLE orders      SET (autovacuum_enabled = false);
-ALTER TABLE customers   SET (autovacuum_enabled = false);
-ALTER TABLE order_items SET (autovacuum_enabled = false);
+ALTER TABLE enrollments SET (autovacuum_enabled = false);
+ALTER TABLE students    SET (autovacuum_enabled = false);
+ALTER TABLE grades      SET (autovacuum_enabled = false);
 
 -- ----------------------------------------------------------------------------
 -- Deliberately inefficient function: three separate scans instead of one
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION calculate_customer_lifetime_value(cust_id INTEGER)
+CREATE OR REPLACE FUNCTION calculate_student_lifetime_value(stu_id INTEGER)
 RETURNS NUMERIC AS $$
 DECLARE
-    total           NUMERIC;
-    avg_order       NUMERIC;
-    order_frequency NUMERIC;
+    total               NUMERIC;
+    avg_enrollment      NUMERIC;
+    enrollment_frequency NUMERIC;
 BEGIN
-    SELECT SUM(total_amount) INTO total
-    FROM orders WHERE customer_id = cust_id;
+    SELECT SUM(tuition_amount) INTO total
+    FROM enrollments WHERE student_id = stu_id;
 
-    SELECT AVG(total_amount) INTO avg_order
-    FROM orders WHERE customer_id = cust_id;
+    SELECT AVG(tuition_amount) INTO avg_enrollment
+    FROM enrollments WHERE student_id = stu_id;
 
     SELECT COUNT(*)::NUMERIC /
-           GREATEST(1, EXTRACT(YEAR FROM AGE(MAX(order_date), MIN(order_date))))
-    INTO order_frequency
-    FROM orders WHERE customer_id = cust_id;
+           GREATEST(1, EXTRACT(YEAR FROM AGE(MAX(enrollment_date), MIN(enrollment_date))))
+    INTO enrollment_frequency
+    FROM enrollments WHERE student_id = stu_id;
 
-    RETURN COALESCE(total + (avg_order * order_frequency * 2), 0);
+    RETURN COALESCE(total + (avg_enrollment * enrollment_frequency * 2), 0);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -161,9 +161,9 @@ $$ LANGUAGE plpgsql;
 -- NOTE: pg_stat_reset() also zeroes n_dead_tup, which the bloat exercise
 -- inspects — so re-ANALYZE afterwards to repopulate the dead-tuple estimates.
 SELECT pg_stat_reset();
-ANALYZE customers;
-ANALYZE orders;
-ANALYZE order_items;
+ANALYZE students;
+ANALYZE enrollments;
+ANALYZE grades;
 
 -- ----------------------------------------------------------------------------
 -- Mis-tune the server (students correct these in Objective 1)
@@ -185,35 +185,35 @@ SELECT pg_reload_conf();
 -- ----------------------------------------------------------------------------
 CREATE MATERIALIZED VIEW IF NOT EXISTS sales_summary AS
 SELECT
-    DATE_TRUNC('month', order_date) AS month,
-    COUNT(*)          AS order_count,
-    SUM(total_amount) AS total_sales,
-    AVG(total_amount) AS avg_order_value,
-    MIN(total_amount) AS min_order,
-    MAX(total_amount) AS max_order
-FROM orders
+    DATE_TRUNC('month', enrollment_date) AS month,
+    COUNT(*)              AS enrollment_count,
+    SUM(tuition_amount)   AS total_tuition,
+    AVG(tuition_amount)   AS avg_tuition_amount,
+    MIN(tuition_amount)   AS min_tuition_amount,
+    MAX(tuition_amount)   AS max_tuition_amount
+FROM enrollments
 WHERE status = 'completed'
-GROUP BY DATE_TRUNC('month', order_date);
+GROUP BY DATE_TRUNC('month', enrollment_date);
 -- Intentionally NOT refreshed:
 -- REFRESH MATERIALIZED VIEW sales_summary;
 
 -- ----------------------------------------------------------------------------
 -- One more analysis view for testing
 -- ----------------------------------------------------------------------------
-CREATE OR REPLACE VIEW customer_order_patterns AS
+CREATE OR REPLACE VIEW student_enrollment_patterns AS
 SELECT
-    c.customer_id,
-    c.customer_name,
-    COUNT(DISTINCT DATE_TRUNC('month', o.order_date)) AS active_months,
-    COUNT(DISTINCT DATE_TRUNC('week',  o.order_date)) AS active_weeks,
-    COUNT(o.order_id)      AS total_orders,
-    AVG(o.total_amount)    AS avg_order_value,
-    STDDEV(o.total_amount) AS order_value_stddev,
-    MAX(o.order_date)      AS last_order_date,
-    MIN(o.order_date)      AS first_order_date
-FROM customers c
-LEFT JOIN orders o ON c.customer_id = o.customer_id
-GROUP BY c.customer_id, c.customer_name;
+    s.student_id,
+    s.student_name,
+    COUNT(DISTINCT DATE_TRUNC('month', e.enrollment_date)) AS active_months,
+    COUNT(DISTINCT DATE_TRUNC('week',  e.enrollment_date)) AS active_weeks,
+    COUNT(e.enrollment_id)   AS total_enrollments,
+    AVG(e.tuition_amount)    AS avg_tuition_amount,
+    STDDEV(e.tuition_amount) AS tuition_amount_stddev,
+    MAX(e.enrollment_date)   AS last_enrollment_date,
+    MIN(e.enrollment_date)   AS first_enrollment_date
+FROM students s
+LEFT JOIN enrollments e ON s.student_id = e.student_id
+GROUP BY s.student_id, s.student_name;
 
 COMMENT ON SCHEMA public IS
     'Database intentionally configured with performance issues for training purposes';
