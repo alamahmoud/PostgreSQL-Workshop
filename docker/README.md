@@ -34,7 +34,7 @@ What students see and do:
 2. Click **Open terminal** on a server. If its container doesn't exist yet it
    is created and provisioned right then; the status LED shows
    *provisioning → ready* (ready = the environment verification passed and
-   `SYSTEM_COMPLETE` exists — exactly what the guides tell students to wait
+   `LAB_IS_READY` exists — exactly what the guides tell students to wait
    for). Students can watch from inside the terminal with `ls`, as the guides
    describe.
 3. For Lab 2, open **two terminal tabs** — one on pg-primary, one on
@@ -55,7 +55,7 @@ data directory for a real PITR.
 | Where the guide says | In the portal |
 |---|---|
 | Open the Ubuntu Desktop / Console from the Connections page | Open terminal on **pg-primary** / **pg-standby** |
-| Wait for `SYSTEM_COMPLETE` | identical (`ls`), or watch the status LED |
+| Wait for `LAB_IS_READY` | identical (`ls`), or watch the status LED |
 | `sudo systemctl start/stop/restart/status postgresql` | identical — handled by the shim |
 | `PRIMARY_IP` (Lab 2, Task 2.2) | `pg-primary` (Docker DNS) or `172.28.5.10` |
 | Replication CIDR `172.31.0.0/16` in pg_hba.conf | `172.28.5.0/24` |
@@ -97,7 +97,7 @@ next attempt.
 
 * **A ready LED means a verified environment.** Provisioning ends by running
   the lab's `verify_environment.sh` (13 checks for Lab 1, 9 for Lab 2); a
-  container only drops `SYSTEM_COMPLETE` after all checks pass. If
+  container only drops `LAB_IS_READY` after all checks pass. If
   provisioning fails, the container exits and `docker logs sm-<name>` names
   the failing check.
 * **Security scope:** the portal mounts the Docker socket (that is how it

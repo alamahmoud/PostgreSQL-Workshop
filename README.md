@@ -15,7 +15,7 @@ PostgreSQL-Workshop/
 ├── docker/                       ← one-command student environments (see docker/README.md)
 │   ├── docker-compose.yml        (browser portal + CLI profiles lab1 / lab2)
 │   ├── Dockerfile                (lab image: Ubuntu 24.04 + apt PostgreSQL, guides' exact layout)
-│   ├── entrypoint.sh             (provisions, verifies, drops SYSTEM_COMPLETE marker)
+│   ├── entrypoint.sh             (provisions, verifies, drops LAB_IS_READY marker)
 │   ├── systemctl-shim.sh         (guides' systemctl commands work inside the container)
 │   ├── portal/                   (browser lab portal: server cards + on-demand terminals)
 │   └── README.md                 (browser & CLI quick start, translation table, resets)

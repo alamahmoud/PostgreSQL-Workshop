@@ -80,8 +80,8 @@ if [ ! -f "$MARKER" ]; then
 fi
 
 # ------------------------------------------------------------ ready + stay up
-touch /home/ubuntu/SYSTEM_COMPLETE
-chown ubuntu:ubuntu /home/ubuntu/SYSTEM_COMPLETE
+touch /home/ubuntu/LAB_IS_READY
+chown ubuntu:ubuntu /home/ubuntu/LAB_IS_READY
 say "READY. Enter with:  docker compose exec -u ubuntu <service> bash"
 
 # Stream the server log to `docker compose logs`, but never die with the

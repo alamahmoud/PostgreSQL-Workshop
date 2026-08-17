@@ -5,7 +5,7 @@
 //   2. manage lab containers over the Docker socket:
 //        - build the lab image from /workshop on first start if missing
 //        - create/start a server's container on demand
-//        - stop / reset (remove) / report status incl. SYSTEM_COMPLETE
+//        - stop / reset (remove) / report status incl. LAB_IS_READY
 //   3. bridge browser WebSockets to `docker exec -u ubuntu bash` PTYs
 
 'use strict';
@@ -154,7 +154,7 @@ async function serverStatus(id) {
   if (!info) return { ...base, status: 'absent' };
   if (!info.State.Running) return { ...base, status: 'stopped' };
   try {
-    const code = await execCapture(c, ['test', '-f', '/home/ubuntu/SYSTEM_COMPLETE']);
+    const code = await execCapture(c, ['test', '-f', '/home/ubuntu/LAB_IS_READY']);
     return { ...base, status: code === 0 ? 'ready' : 'provisioning' };
   } catch (_) {
     return { ...base, status: 'provisioning' };

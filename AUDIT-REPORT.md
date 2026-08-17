@@ -69,4 +69,4 @@ Severity: 🔴 breaks the lab · 🟠 teaches something wrong or silently fails 
 * Full PITR cycle: archiving → base backup → marker inserts → target after inserts → WAL switch → destructive delete → restore both tars → append recovery config → `recovery stopping before commit` → 18 orders with all 3 markers recovered, new timeline.
 * Full replication + failover cycle: scram-authenticated `pg_basebackup -R -X stream`, `pg_stat_replication` streaming, rows visible on standby, promote, `pg_is_in_recovery()=f`, post-failover writes, integrity counts 18/10/15.
 
-*Not exercised in the sandbox:* the hosted-lab UI steps (Connections page, SYSTEM_COMPLETE marker) and true two-host networking — replication was validated with two clusters on one host, which exercises identical PostgreSQL code paths.
+*Not exercised in the sandbox:* the hosted-lab UI steps (Connections page, LAB_IS_READY marker) and true two-host networking — replication was validated with two clusters on one host, which exercises identical PostgreSQL code paths.

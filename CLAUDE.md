@@ -97,7 +97,7 @@ var, handled entirely in `docker/entrypoint.sh`:
 
 Provisioning runs once, gated by a marker file (`/var/lib/postgresql/.lab_setup_done`); readiness
 for external tooling (the portal, `verify_environment.sh`) is signaled by the existence of
-`/home/ubuntu/SYSTEM_COMPLETE`. The entrypoint never exits after setup — the container must
+`/home/ubuntu/LAB_IS_READY`. The entrypoint never exits after setup — the container must
 survive students deliberately stopping PostgreSQL mid-lab (DR lab), so it tails `/dev/null`
 forever instead of tracking the postgres process.
 
@@ -105,7 +105,7 @@ forever instead of tracking the postgres process.
 server that (1) serves a static SPA (`public/`), (2) drives the Docker socket via `dockerode` to
 build the shared lab image on demand (from the package root, ignoring `docker/portal`, `.docx`,
 `.zip`, `.git`), create/start/stop/remove the three named containers, and poll each one's
-`SYSTEM_COMPLETE` marker for status, and (3) bridges browser WebSockets (`/term?server=<id>`) to
+`LAB_IS_READY` marker for status, and (3) bridges browser WebSockets (`/term?server=<id>`) to
 `docker exec -u ubuntu bash -l` PTYs via xterm.js, so terminal I/O flows straight through
 Docker's exec API — there is no shell logic in the portal itself. The three servers, their
 container names, and their fixed lab-subnet IPs (`172.28.5.0/24`, matching the CIDR the Lab 2
